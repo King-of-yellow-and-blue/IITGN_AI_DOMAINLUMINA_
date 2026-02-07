@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 import fitz
 import os
 
@@ -48,4 +46,3 @@ if os.path.exists(pdf_path):
         print("Title not found in first page.")
 else:
     print("iesc107.pdf not found.")
->>>>>>> 7a16fead81d78061ecb1a77ea6528f87c946d5f5

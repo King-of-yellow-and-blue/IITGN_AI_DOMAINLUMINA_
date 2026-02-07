@@ -1,15 +1,6 @@
-<<<<<<< HEAD
 streamlit
 google-generativeai
 pymupdf
 requests
 beautifulsoup4
 streamlit-mic-recorder
-=======
-streamlit
-google-generativeai
-pymupdf
-requests
-beautifulsoup4
-streamlit-mic-recorder
->>>>>>> 7a16fead81d78061ecb1a77ea6528f87c946d5f5

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Skill: High-Precision NCERT Extraction & Interactive Labeling
 
 ## Phase 1: NCERT Image Retrieval
