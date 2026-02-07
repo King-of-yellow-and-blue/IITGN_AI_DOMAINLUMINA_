@@ -155,7 +155,8 @@ with st.sidebar:
         "📝 Exam Generator", 
         "🔍 Thinking Debugger",
         "🗂️ Flashcards",
-        "🧠 Concept Transfer Intelligence (CTI)"
+        "🧠 Concept Transfer Intelligence (CTI)",
+        "🔢 Arithmetic Solving",
     ])
 
 # --- AI FUNCTION ---
@@ -165,6 +166,49 @@ def ask_gemini(prompt):
         return response.text
     except Exception as e:
         return f"Error: {e}"
+
+# --- HELP GUIDE COMPONENT ---
+def render_help_guide():
+    with st.popover("❓", use_container_width=True):
+        st.markdown("""
+        ### 🌟 How to use LUMINA
+        
+        **1. 📚 Learning Path**
+        - **Goal:** Deep understanding of a specific topic.
+        - **Math Mode:** Generates formulas & mental models (No PDF).
+        - **Science Mode:** Fetches NCERT diagrams + AI Visuals.
+        - **Cognitive Depth:** Choose 'Short', 'Assessment', or 'Long' to tune the explanation.
+
+        **2. 📝 Exam Generator**
+        - **Goal:** Practice writing high-scoring answers.
+        - **Input:** Speak or type a question.
+        - **Marks:** Select 2, 3, 5, or 7 marks for CBSE-style structure.
+        - **Output:** Textbook-accurate answer + Marking Scheme.
+
+        **3. 🔍 Thinking Debugger**
+        - **Goal:** Fix misconceptions.
+        - **Action:** Type a concept (even if wrong).
+        - **Result:** AI finds the "Logic Gap" and corrects it.
+
+        **4. 🗂️ Flashcards**
+        - **Goal:** Quick revision.
+        - **Action:** Enter a topic -> Get 5 Q&A cards.
+        
+        **5. 🧠 CTI (Viva)**
+        - **Goal:** Test your conviction.
+        - **Action:** Enter the "Interview Room". The AI Examiner will cross-question you.
+
+        **6. 🔢 Arithmetic Solving**
+        - **Goal:** Solve mathematical problems.
+        - **Action:** Enter a problem and get a step-by-step solution.
+        """)
+
+# --- MAIN LAYOUT LOGIC ---
+# Place the Help button at the very top right using columns
+# We use a large ratio to push the button to the edge
+h_col1, h_col2 = st.columns([15, 1])
+with h_col2:
+    render_help_guide()
 
 # --- MODE 1: LEARNING PATH (The Final Optimized Master Rebuild) ---
 if mode == "📚 Learning Path":
@@ -764,3 +808,101 @@ elif mode == "🧠 Concept Transfer Intelligence (CTI)":
 
         if st.button("Reset for New Interview"):
             st.session_state.clear()
+
+
+# =========================================================
+# MODE 6: ARITHMETIC SOLVING (NCERT Class 8-12)
+# =========================================================
+elif mode == "🔢 Arithmetic Solving":
+    st.markdown('<div class="main-title">🔢 Arithmetic Solving</div>', unsafe_allow_html=True)
+    st.info("Strictly for Mathematical Operations. Follows NCERT step-by-step logic.")
+
+    # 1. SESSION STATE FOR PERSISTENCE
+    if 'arithmetic_q' not in st.session_state:
+        st.session_state.arithmetic_q = ""
+
+    # 2. ALIGNED INPUT SECTION (Same Line Layout)
+    # Using columns to align 'Select Class' and 'Ask by Voice'
+    col1, col2 = st.columns([2, 4], gap="large")
+    
+    with col1:
+        st.markdown("**Select Class**")
+        grade_level = st.selectbox(
+            "Select Class", 
+            ["Class 9", "Class 10", "Class 11", "Class 12"],
+            label_visibility="collapsed",
+            key="math_grade_select"
+        )
+    
+    with col2:
+        # Aligning the header with the dropdown's top margin
+        st.markdown("### 🎙️ Ask by Voice")
+        spoken_math = speech_to_text(
+            language='en', 
+            use_container_width=True, 
+            just_once=True, 
+            key=f'arith_mic_{grade_level}' 
+        )
+        if spoken_math:
+            st.session_state.arithmetic_q = spoken_math
+
+    # 3. TEXT AREA SECTION
+    st.markdown("**Enter Math Problem:**")
+    user_problem = st.text_area(
+        "Enter Math Problem:", 
+        value=st.session_state.arithmetic_q,
+        placeholder="e.g., Integrate log x to the power 5 or solve a profit/loss problem...",
+        height=150,
+        label_visibility="collapsed"
+    )
+    st.session_state.arithmetic_q = user_problem
+
+    # 4. SOLVER ENGINE
+    if st.button("SOLVE THE MATHEMATICAL WAY", use_container_width=True):
+        if not user_problem:
+            st.warning("Please enter a mathematical operation to solve.")
+        else:
+            with st.spinner(f"Solving using {grade_level} NCERT methodology..."):
+                math_prompt = f"""
+                User Grade: {grade_level}
+                Problem: {user_problem}
+
+                STRICT RULES:
+                1. Solve ONLY if this is a Mathematical/Arithmetic operation.
+                2. Use the exact NCERT {grade_level} textbook approach.
+                3. Follow the systematic 'Mathematical Way' format.
+
+                FORMAT OF OUTPUT:
+                # 🔢 The Mathematical Way
+                
+                **The Problem:** [Restate problem clearly]
+                
+                **The Formula:** [State the specific NCERT formula in LaTeX]
+                
+                **Step-by-Step Solution:**
+                1. **Identify the given values:** [List variables with units]
+                2. **Rearrange/Substitute:** [Show the formula with numbers]
+                3. **Calculate:** [Show clear arithmetic steps]
+                4. **Simplification:** [Final reduction]
+                
+                **Final Result:** > $$[Final Answer Boxed]$$
+
+                **Teacher's Tip:** [Specific exam hack for this topic]
+                
+                ---
+                ## 🔄 Reoccurring Exam Questions
+                - **Easy (NCERT):** [1 basic question]
+                - **Medium (Board Level):** [1 reoccurring question]
+                - **Hard (HOTS):** [1 challenging logic question]
+                """
+                
+                solution = ask_gemini(math_prompt)
+                
+                st.markdown("---")
+                st.markdown(solution)
+                
+                # Visual Support for Concepts
+                if "refraction" in user_problem.lower() or "sin" in user_problem.lower():
+                    st.write("")
+
+                st.download_button("Download Solution", solution, file_name=f"{grade_level}_Solution.txt")
