@@ -1,0 +1,6 @@
+streamlit
+google-generativeai
+pymupdf
+requests
+beautifulsoup4
+streamlit-mic-recorder
