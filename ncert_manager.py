@@ -184,35 +184,54 @@ def get_book_code(class_grade, subject, chapter_num=1):
     """
     Returns the NCERT book code based on class, subject, and chapter.
     """
-    class_grade = str(class_grade)
+    import re
+    
+    # 1. Normalize Class Input (e.g., "10th Grade" -> "10")
+    class_str = str(class_grade).strip()
+    class_match = re.search(r'\d+', class_str)
+    if class_match:
+        class_grade = class_match.group()
+    else:
+        # Fallback or keep as is if no digits found (though likely invalid)
+        class_grade = class_str
+
     subject = subject.lower()
-    chapter_num = int(chapter_num)
+    
+    # 2. Normalize Chapter Input (e.g., "Chapter 1" -> 1)
+    chap_str = str(chapter_num).strip()
+    chap_match = re.search(r'\d+', chap_str)
+    if chap_match:
+        chapter_num = int(chap_match.group())
+    else:
+        # Default to 1 if parsing fails
+        chapter_num = 1
     
     if class_grade == "10":
-        if "science" in subject: return "jesc1"
-        if "math" in subject: return "jemh1"
-        if "english" in subject: return "jefp1" # First Flight
+        if "science" in subject: return "jesc1", chapter_num
+        if "math" in subject: return "jemh1", chapter_num
+        if "english" in subject: return "jefp1", chapter_num # First Flight
     
     elif class_grade == "9":
-        if "science" in subject: return "iesc1"
-        if "math" in subject: return "iemh1"
+        if "science" in subject: return "iesc1", chapter_num
+        if "math" in subject: return "iemh1", chapter_num
 
     elif class_grade == "11":
         if "physics" in subject:
-            return "keph1" if chapter_num <= 8 else "keph2"
+            # Part 1: Ch 1-8, Part 2: Ch 9-14 (Reset to 1)
+            return ("keph1", chapter_num) if chapter_num <= 8 else ("keph2", chapter_num - 8)
         if "chemistry" in subject:
-            # Assuming Part 1 is Ch 1-6 (Physical/Inorganic basics)
-            return "kech1" if chapter_num <= 6 else "kech2" 
-        if "biology" in subject: return "kebo1"
+            # Part 1: Ch 1-6, Part 2: Ch 7-X (Reset to 1)
+            return ("kech1", chapter_num) if chapter_num <= 6 else ("kech2", chapter_num - 6) 
+        if "biology" in subject: return "kebo1", chapter_num
 
     elif class_grade == "12":
         if "physics" in subject:
-            # Part 1: Ch 1-8
-            return "leph1" if chapter_num <= 8 else "leph2"
+            # Part 1: Ch 1-8, Part 2: Ch 9-14 (Reset to 1)
+            return ("leph1", chapter_num) if chapter_num <= 8 else ("leph2", chapter_num - 8)
         if "chemistry" in subject:
-            # Part 1: Ch 1-5 (Physical/Inorganic)
-            return "lech1" if chapter_num <= 5 else "lech2"
-        if "biology" in subject: return "lebo1"
+            # Part 1: Ch 1-5, Part 2: Ch 6-10 (Reset to 1)
+            return ("lech1", chapter_num) if chapter_num <= 5 else ("lech2", chapter_num - 5)
+        if "biology" in subject: return "lebo1", chapter_num
             
     return None
 
@@ -223,12 +242,12 @@ def download_ncert_pdf(class_grade, subject, chapter_num):
     if not os.path.exists(STORAGE_DIR):
         os.makedirs(STORAGE_DIR)
 
-    book_code = get_book_code(class_grade, subject, chapter_num)
+    book_code, final_chapter_num = get_book_code(class_grade, subject, chapter_num)
     if not book_code:
         return None, "Book code not found for this Class/Subject."
 
     # Format chapter number (e.g., 1 -> 01)
-    chap_str = str(chapter_num).zfill(2)
+    chap_str = str(final_chapter_num).zfill(2)
     
     # Construct Filename and URL
     # Pattern: [book_code][chapter].pdf -> jesc101.pdf
@@ -242,21 +261,40 @@ def download_ncert_pdf(class_grade, subject, chapter_num):
     if os.path.exists(file_path):
         return file_path, "Loaded from cache."
     
-    # Download
-    try:
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
-        response = requests.get(url, stream=True, headers=headers)
-        if response.status_code == 200:
-            with open(file_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            return file_path, "Download successful."
-        elif response.status_code == 404:
-             return None, f"Chapter not found (404). URL: {url}"
-        else:
-            return None, f"Failed to download. Status: {response.status_code}"
-    except Exception as e:
-        return None, f"Error: {e}"
+    # Download with Retry Logic
+    import time
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+            # Use short timeout only for connect, longer for read
+            response = requests.get(url, stream=True, headers=headers, timeout=(5, 20))
+            
+            if response.status_code == 200:
+                with open(file_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                return file_path, "Download successful."
+            elif response.status_code == 404:
+                 return None, f"Chapter not found (404). URL: {url}"
+            else:
+                if attempt < max_retries - 1:
+                    time.sleep(1) # Wait before retry
+                    continue
+                return None, f"Failed to download. Status: {response.status_code}"
+                
+        except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError, requests.exceptions.Timeout) as e:
+            if attempt < max_retries - 1:
+                print(f"Download error {e}. Retrying ({attempt+1}/{max_retries})...")
+                time.sleep(2)
+            else:
+                return None, f"Network Error after retries: {e}"
+        except Exception as e:
+            return None, f"Error: {e}"
+            
+    return None, "Download failed after retries."
 
 def extract_relevant_image(pdf_path, topic_keywords):
     """
@@ -291,6 +329,7 @@ def extract_relevant_image(pdf_path, topic_keywords):
             # Check images on this page
             image_list = page.get_images(full=True)
             if image_list:
+                max_size = 0  # Initialize max_size for this page's images
                 # Iterate through images on this high-scoring page
                 for img_index, img in enumerate(image_list):
                     xref = img[0]
@@ -311,6 +350,9 @@ def extract_relevant_image(pdf_path, topic_keywords):
                             
                         # Filter 3: Content (Skip blank/black/uniform images)
                         # Convert to grayscale and calculate variance
+                        if pil_img.mode == "CMYK":
+                            pil_img = pil_img.convert("RGB")
+                            
                         img_gray = pil_img.convert("L")
                         stat = img_gray.getextrema()
                         if stat[0] == stat[1]: # Completely uniform color (black or white)
