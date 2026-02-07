@@ -178,6 +178,39 @@ def get_class_11_chemistry_chapters(): return list(CLASS_11_CHEMISTRY_CHAPTERS.k
 def get_class_11_biology_chapters(): return list(CLASS_11_BIOLOGY_CHAPTERS.keys())
 def get_class_12_physics_chapters(): return list(CLASS_12_PHYSICS_CHAPTERS.keys())
 def get_class_12_chemistry_chapters(): return list(CLASS_12_CHEMISTRY_CHAPTERS.keys())
+
+# --- MATH CHAPTERS ---
+CLASS_9_MATH_CHAPTERS = {
+    "Number Systems": 1, "Polynomials": 2, "Coordinate Geometry": 3, "Linear Equations in Two Variables": 4, 
+    "Introduction to Euclid's Geometry": 5, "Lines and Angles": 6, "Triangles": 7, "Quadrilaterals": 8, 
+    "Circles": 9, "Heron's Formula": 10, "Surface Areas and Volumes": 11, "Statistics": 12
+}
+
+CLASS_10_MATH_CHAPTERS = {
+    "Real Numbers": 1, "Polynomials": 2, "Pair of Linear Equations in Two Variables": 3, "Quadratic Equations": 4, 
+    "Arithmetic Progressions": 5, "Triangles": 6, "Coordinate Geometry": 7, "Introduction to Trigonometry": 8, 
+    "Some Applications of Trigonometry": 9, "Circles": 10, "Areas Related to Circles": 11, 
+    "Surface Areas and Volumes": 12, "Statistics": 13, "Probability": 14
+}
+
+CLASS_11_MATH_CHAPTERS = {
+    "Sets": 1, "Relations and Functions": 2, "Trigonometric Functions": 3, "Complex Numbers and Quadratic Equations": 4, 
+    "Linear Inequalities": 5, "Permutations and Combinations": 6, "Binomial Theorem": 7, "Sequences and Series": 8, 
+    "Straight Lines": 9, "Conic Sections": 10, "Introduction to Three Dimensional Geometry": 11, 
+    "Limits and Derivatives": 12, "Statistics": 13, "Probability": 14
+}
+
+CLASS_12_MATH_CHAPTERS = {
+    "Relations and Functions": 1, "Inverse Trigonometric Functions": 2, "Matrices": 3, "Determinants": 4, 
+    "Continuity and Differentiability": 5, "Applications of Derivatives": 6, "Integrals": 7, 
+    "Application of Integrals": 8, "Differential Equations": 9, "Vector Algebra": 10, 
+    "Three Dimensional Geometry": 11, "Linear Programming": 12, "Probability": 13
+}
+
+def get_class_9_math_chapters(): return list(CLASS_9_MATH_CHAPTERS.keys())
+def get_class_10_math_chapters(): return list(CLASS_10_MATH_CHAPTERS.keys())
+def get_class_11_math_chapters(): return list(CLASS_11_MATH_CHAPTERS.keys())
+def get_class_12_math_chapters(): return list(CLASS_12_MATH_CHAPTERS.keys())
 def get_class_12_biology_chapters(): return list(CLASS_12_BIOLOGY_CHAPTERS.keys())
 
 def get_book_code(class_grade, subject, chapter_num=1):

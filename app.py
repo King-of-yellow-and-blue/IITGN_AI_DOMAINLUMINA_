@@ -138,10 +138,13 @@ with st.sidebar:
     st.caption("Learning, Understanding & Mastery through Intelligent Neural Architecture")
     
     # Secure API Key Input
-    api_key = st.text_input("Enter Google Gemini API Key", type="password")
-    if not api_key:
-        st.warning("⚠️ Paste API Key to Start")
-        st.stop()
+    # Secure API Key Input (Hardcoded for Backend)
+    # api_key = st.text_input("Enter Google Gemini API Key", type="password")
+    api_key = "AIzaSyD5njfeYyu0iCgeOXbWLSKFndYSCsehu6w"
+    
+    # if not api_key:
+    #     st.warning("⚠️ Paste API Key to Start")
+    #     st.stop()
     
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash-lite')
@@ -169,25 +172,44 @@ if mode == "📚 Learning Path":
     
     # 1. Input Section
     col1, col2, col3 = st.columns(3)
-    user_class = col1.text_input("Class", placeholder="e.g. 10th Grade")
-    subject = col2.text_input("Subject", placeholder="e.g. Physics")
+    user_class = col1.selectbox("Class", ["9th", "10th", "11th", "12th"])
     
-    # Enhanced Chapter Selection for Class 10 & 9 Science
-    # Simple check if "10" is in input and "science" is in subject
-    if user_class and "10" in user_class and subject and "science" in subject.lower():
-        chapter_names = ncert_manager.get_class_10_science_chapters()
-        selected_chapter = col3.selectbox("Chapter Name", chapter_names)
-        # Map back to number
-        chapter_num = ncert_manager.CLASS_10_SCIENCE_CHAPTERS[selected_chapter]
+    # Conditional Subject Logic
+    if user_class in ["9th", "10th"]:
+        sub_options = ["Science", "Mathematics"]
+    else:
+        sub_options = ["Physics", "Chemistry", "Biology", "Mathematics"]
+        
+    subject = col2.selectbox("Subject", sub_options)
     
-    # Check for Class 9
-    elif user_class and "9" in user_class and subject and "science" in subject.lower():
-        chapter_names = ncert_manager.get_class_9_science_chapters()
-        selected_chapter = col3.selectbox("Chapter Name", chapter_names)
-        # Map back to number
-        chapter_num = ncert_manager.CLASS_9_SCIENCE_CHAPTERS[selected_chapter]
+    # Enhanced Chapter Selection
+    # Class 10
+    if user_class and "10" in user_class:
+        if "science" in subject.lower():
+            chapter_names = ncert_manager.get_class_10_science_chapters()
+            selected_chapter = col3.selectbox("Chapter Name", chapter_names)
+            chapter_num = ncert_manager.CLASS_10_SCIENCE_CHAPTERS[selected_chapter]
+        elif "math" in subject.lower():
+            chapter_names = ncert_manager.get_class_10_math_chapters()
+            selected_chapter = col3.selectbox("Chapter Name", chapter_names)
+            chapter_num = ncert_manager.CLASS_10_MATH_CHAPTERS[selected_chapter]
+        else:
+            chapter_num = col3.text_input("Chapter Number", placeholder="e.g. 1")
+    
+    # Class 9
+    elif user_class and "9" in user_class:
+        if "science" in subject.lower():
+            chapter_names = ncert_manager.get_class_9_science_chapters()
+            selected_chapter = col3.selectbox("Chapter Name", chapter_names)
+            chapter_num = ncert_manager.CLASS_9_SCIENCE_CHAPTERS[selected_chapter]
+        elif "math" in subject.lower():
+            chapter_names = ncert_manager.get_class_9_math_chapters()
+            selected_chapter = col3.selectbox("Chapter Name", chapter_names)
+            chapter_num = ncert_manager.CLASS_9_MATH_CHAPTERS[selected_chapter]
+        else:
+            chapter_num = col3.text_input("Chapter Number", placeholder="e.g. 1")
 
-    # Check for Class 11
+    # Class 11
     elif user_class and "11" in user_class:
         sub_lower = subject.lower() if subject else ""
         if "physics" in sub_lower:
@@ -202,10 +224,14 @@ if mode == "📚 Learning Path":
             chapter_names = ncert_manager.get_class_11_biology_chapters()
             selected_chapter = col3.selectbox("Chapter Name", chapter_names)
             chapter_num = ncert_manager.CLASS_11_BIOLOGY_CHAPTERS[selected_chapter]
+        elif "math" in sub_lower:
+            chapter_names = ncert_manager.get_class_11_math_chapters()
+            selected_chapter = col3.selectbox("Chapter Name", chapter_names)
+            chapter_num = ncert_manager.CLASS_11_MATH_CHAPTERS[selected_chapter]
         else:
             chapter_num = col3.text_input("Chapter Number", placeholder="e.g. 1")
 
-    # Check for Class 12
+    # Class 12
     elif user_class and "12" in user_class:
         sub_lower = subject.lower() if subject else ""
         if "physics" in sub_lower:
@@ -220,6 +246,10 @@ if mode == "📚 Learning Path":
             chapter_names = ncert_manager.get_class_12_biology_chapters()
             selected_chapter = col3.selectbox("Chapter Name", chapter_names)
             chapter_num = ncert_manager.CLASS_12_BIOLOGY_CHAPTERS[selected_chapter]
+        elif "math" in sub_lower:
+            chapter_names = ncert_manager.get_class_12_math_chapters()
+            selected_chapter = col3.selectbox("Chapter Name", chapter_names)
+            chapter_num = ncert_manager.CLASS_12_MATH_CHAPTERS[selected_chapter]
         else:
             chapter_num = col3.text_input("Chapter Number", placeholder="e.g. 1")
 
@@ -229,7 +259,7 @@ if mode == "📚 Learning Path":
     topic = st.text_input("Topic/Question", placeholder="Enter the specific concept...")
     
     # Cognitive Depth Control
-    depth = st.select_slider("Cognitive Depth", options=["Default (Short)", "Guide (Exp + Quiz + Questions)", "Long (Detailed)"])
+    depth = st.select_slider("Cognitive Depth", options=["Default (Short)", "Assessment (Exp + Quiz + Questions)", "Long (Detailed)"])
 
     if st.button("Generate Learning Path"):
         if not topic:
@@ -238,7 +268,7 @@ if mode == "📚 Learning Path":
             with st.spinner("Analyzing Knowledge Graph & Scaling Math..."):
                 # Define constraints based on depth
                 word_limit = "120 words" if depth == "Default (Short)" else "450 words"
-                include_extras = "YES" if depth == "Guide (Exp + Quiz + Questions)" else "NO"
+                include_extras = "YES" if depth == "Assessment (Exp + Quiz + Questions)" else "NO"
                 
                 # MASTER PROMPT: Strictly forcing Math formatting and Easy Analogies
                 master_prompt = f"""
@@ -314,17 +344,22 @@ if mode == "📚 Learning Path":
                             st.subheader("🖼️ The Visual Way")
                             
                             # --- NCERT INTEGRATION ATTEMPT ---
+                            # --- NCERT INTEGRATION ATTEMPT ---
                             ncert_image = None
-                            try:
-                                with st.spinner("Searching NCERT Database..."):
-                                    pdf_path, msg = ncert_manager.download_ncert_pdf(user_class, subject, chapter_num)
-                                    if pdf_path:
-                                        st.caption(f"✅ NCERT Source Found: {os.path.basename(pdf_path)}")
-                                        ncert_image = ncert_manager.extract_relevant_image(pdf_path, topic)
-                                    else:
-                                        st.caption(f"⚠️ NCERT Search: {msg}")
-                            except Exception as e:
-                                st.caption(f"NCERT Error: {e}")
+                            # Skip for Math as requested
+                            if "math" not in subject.lower():
+                                try:
+                                    with st.spinner("Searching NCERT Database..."):
+                                        pdf_path, msg = ncert_manager.download_ncert_pdf(user_class, subject, chapter_num)
+                                        if pdf_path:
+                                            st.caption(f"✅ NCERT Source Found: {os.path.basename(pdf_path)}")
+                                            ncert_image = ncert_manager.extract_relevant_image(pdf_path, topic)
+                                        else:
+                                            st.caption(f"⚠️ NCERT Search: {msg}")
+                                except Exception as e:
+                                    st.caption(f"NCERT Error: {e}")
+                            else:
+                                st.caption("Mathematical Subject: Using AI Visualization & Mental Models.")
 
                             # DISPLAY LOGIC
                             if ncert_image:
@@ -341,6 +376,26 @@ if mode == "📚 Learning Path":
                                     st.image(diagram_url, width='stretch')
                             
                             st.write(visual_desc)
+                            
+                            # --- NEW: MENTAL MODEL VISUALIZATION ---
+                            # Only runs if it's likely a chemical/math topic to save token/time
+                            if "chem" in subject.lower() or "science" in subject.lower() or "math" in subject.lower():
+                                try:
+                                    mental_prompt = f"""
+                                    Create a "Mental Model" visualization for '{topic}'.
+                                    If it's a chemical, show the 2D structural formula (like Ethanol or Benzene) using simple ASCII/text art.
+                                    If it's a math/physics concept, show the core equation or a simple text diagram.
+                                    
+                                    Style: Clean, spacious, easy to read on a dark background. 
+                                    Format: Return ONLY the ASCII/Equation inside a code block. NO explanation.
+                                    """
+                                    mental_art = ask_gemini(mental_prompt)
+                                    if "```" in mental_art: # Simple check if it returned code
+                                        st.markdown("### 🧠 Mental Structure")
+                                        st.caption("Visualize this structure/equation in your mind:")
+                                        st.markdown(mental_art)
+                                except Exception:
+                                    pass
 
                     with col_m:
                         with st.container(border=True):
@@ -350,7 +405,7 @@ if mode == "📚 Learning Path":
                     with st.expander("🔍 3. Common Pitfalls & Corrections"):
                         st.warning(misconceptions)
 
-                    # Assessment Section (Only displays if Guide mode is active)
+                    # Assessment Section (Only displays if assessment mode is active)
                     if include_extras == "YES" and (quiz_raw or practice_raw):
                         st.markdown('### ✍️ 4. Assessment Zone')
                         tab_mcq, tab_practice = st.tabs(["Multiple Choice Quiz", "3 Practice Questions"])
@@ -472,7 +527,7 @@ elif mode == "📝 Exam Generator":
                 
                 # Download Button
                 st.download_button(
-                    label="📂 Download CBSE Answer Guide",
+                    label="📂 Download CBSE Answer assessment",
                     data=full_response,
                     file_name=f"CBSE_{marks.replace(' ', '_')}_Solution.txt",
                     mime="text/plain"
@@ -661,7 +716,7 @@ elif mode == "🧠 Concept Transfer Intelligence (CTI)":
                 - Use simple, direct vocabulary.
                 - If they are correct, challenge an assumption or move to a harder RELATABLE edge-case.
                 - If they are wrong, ask a 'cross-question' that forces them to see their own mistake.
-                - If turn >= 10 or they've proven mastery, respond with [TERMINATE].
+                - If turn >= 7 or they've proven mastery, respond with [TERMINATE].
                 
                 FORMAT:
                 EVAL: [Hidden Thinking Debugger Analysis]
