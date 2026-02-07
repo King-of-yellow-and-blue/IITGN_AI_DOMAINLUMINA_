@@ -134,21 +134,24 @@ st.markdown("""
 
 # --- SIDEBAR SETUP ---
 # Secure API Key Input (Frontend Controlled)
-api_key = st.text_input("🔐 Enter Google Gemini API Key", type="password")
+with st.sidebar:
+    st.title("LUMINA 🧠")
+    st.caption("Learning, Understanding & Mastery through Intelligent Neural Architecture")
 
-if not api_key:
-    st.warning("⚠️ Please enter your API Key to start LUMINA.")
-    st.stop()
+    # API KEY INPUT
+    api_key = st.text_input("🔐 Enter Google Gemini API Key", type="password")
 
-try:
+    if not api_key:
+        st.warning("⚠️ Please enter your API Key to start LUMINA.")
+        st.stop()
+
+    # Configure Gemini AFTER key is entered
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash-lite')
-except Exception as e:
-    st.error("Invalid API Key or configuration error.")
-    st.stop()
-
 
     st.markdown("---")
+
+    # ⚠️ DEFINE MODE HERE (IMPORTANT)
     mode = st.radio("Select Mode", [
         "📚 Learning Path", 
         "📝 Exam Generator", 
@@ -157,6 +160,7 @@ except Exception as e:
         "🧠 Concept Transfer Intelligence (CTI)",
         "🔢 Arithmetic Solving",
     ])
+
 
 # --- AI FUNCTION ---
 def ask_gemini(prompt):
