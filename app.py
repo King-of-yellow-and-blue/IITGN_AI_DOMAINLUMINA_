@@ -140,7 +140,7 @@ with st.sidebar:
     # Secure API Key Input
     # Secure API Key Input (Hardcoded for Backend)
     # api_key = st.text_input("Enter Google Gemini API Key", type="password")
-    api_key = "AIzaSyD5njfeYyu0iCgeOXbWLSKFndYSCsehu6w"
+    api_key = "AIzaSyCqNX4Pq11bQXrku54AT_rNhQrNSFZ87-w"
     
     # if not api_key:
     #     st.warning("⚠️ Paste API Key to Start")
