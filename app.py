@@ -133,21 +133,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- SIDEBAR SETUP ---
-with st.sidebar:
-    st.title("LUMINA 🧠")
-    st.caption("Learning, Understanding & Mastery through Intelligent Neural Architecture")
-    
-    # Secure API Key Input
-    # Secure API Key Input (Hardcoded for Backend)
-    # api_key = st.text_input("Enter Google Gemini API Key", type="password")
-    api_key = "AIzaSyCqNX4Pq11bQXrku54AT_rNhQrNSFZ87-w"
-    
-    # if not api_key:
-    #     st.warning("⚠️ Paste API Key to Start")
-    #     st.stop()
-    
+# Secure API Key Input (Frontend Controlled)
+api_key = st.text_input("🔐 Enter Google Gemini API Key", type="password")
+
+if not api_key:
+    st.warning("⚠️ Please enter your API Key to start LUMINA.")
+    st.stop()
+
+try:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash-lite')
+except Exception as e:
+    st.error("Invalid API Key or configuration error.")
+    st.stop()
+
 
     st.markdown("---")
     mode = st.radio("Select Mode", [
